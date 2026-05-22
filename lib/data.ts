@@ -18,7 +18,7 @@ export const skillCategoryOrder: { category: SkillCategory; labelKey: string }[]
   { category: 'state', labelKey: 'skills.category.state' },
   { category: 'tool', labelKey: 'skills.category.tools' },
   { category: 'design', labelKey: 'skills.category.design' },
-  { category: 'ml', labelKey: 'skills.category.ml' },
+  // { category: 'ml', labelKey: 'skills.category.ml' }, // temporarily hidden
 ]
 
 export function getSkillsByCategory(category: SkillCategory): Skill[] {
