@@ -1,13 +1,16 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from '@/contexts/LanguageContext'
-import { projects } from '@/lib/data'
+import { projects, type Project } from '@/lib/data'
 import { ProjectCard } from '@/components/portfolio/ProjectCard'
+import { ProjectDetailModal } from '@/components/portfolio/ProjectDetailModal'
 import { fadeUp, staggerContainer, viewport } from '@/lib/animations'
 
 export function ProjectsPageContent() {
   const { t } = useTranslation()
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
 
   return (
     <main className="pt-28 pb-20 px-6 sm:px-12 md:px-20 lg:px-28 xl:px-36 min-h-screen">
@@ -53,12 +56,22 @@ export function ProjectsPageContent() {
         >
           {projects.map((project) => (
             <motion.div key={project.id} variants={fadeUp} className="h-full">
-              <ProjectCard project={project} t={t} showImage />
+              <ProjectCard
+                project={project}
+                t={t}
+                showImage
+                onSelect={setSelectedProject}
+              />
             </motion.div>
           ))}
         </motion.div>
 
       </div>
+      <ProjectDetailModal
+        project={selectedProject}
+        onClose={() => setSelectedProject(null)}
+        t={t}
+      />
     </main>
   )
 }

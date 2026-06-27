@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import type { KeyboardEvent, MouseEvent } from 'react'
 import { ExternalLink } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Badge } from '@/components/ui/badge'
@@ -18,112 +19,135 @@ interface ProjectCardProps {
   project: Project
   t: (key: string) => string
   showImage?: boolean
+  onSelect?: (project: Project) => void
 }
 
-export function ProjectCard({ project, t, showImage = false }: ProjectCardProps) {
+export function ProjectCard({ project, t, showImage = false, onSelect }: ProjectCardProps) {
+  const isClickable = Boolean(onSelect)
+
+  const handleSelect = () => {
+    onSelect?.(project)
+  }
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!onSelect) return
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      handleSelect()
+    }
+  }
+
+  const stopCardSelect = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.stopPropagation()
+  }
+
   return (
     <motion.div
       className="h-full"
       whileHover={{ y: -6, boxShadow: '0 20px 40px -12px rgba(0,0,0,0.15)' }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
     >
-    <div className={cn(
-      'flex flex-col h-full rounded-xl overflow-hidden transition-all duration-200',
-      'border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-[#0d1117]',
-      'shadow-sm shadow-zinc-200/80 dark:shadow-black/30',
-      'hover:border-accent-portfolio/50',
-    )}>      {/* Project image — only on projects page */}
-      {showImage && project.imageUrl && (
-        <div className="relative w-full h-52 overflow-hidden bg-zinc-100 dark:bg-zinc-900">
-          <Image
-            src={project.imageUrl}
-            alt={`${project.name} preview`}
-            fill
-            className="object-cover object-top"
-            sizes="(max-width: 640px) 100vw, 50vw"
-          />
-        </div>
-      )}
+      <div
+        className={cn(
+          'flex flex-col h-full rounded-xl overflow-hidden transition-all duration-200',
+          'border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-[#0d1117]',
+          'shadow-sm shadow-zinc-200/80 dark:shadow-black/30',
+          'hover:border-accent-portfolio/50',
+          isClickable && 'cursor-pointer focus-visible:border-accent-portfolio focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-portfolio/40',
+        )}
+        role={isClickable ? 'button' : undefined}
+        tabIndex={isClickable ? 0 : undefined}
+        onClick={isClickable ? handleSelect : undefined}
+        onKeyDown={isClickable ? handleKeyDown : undefined}
+        aria-label={isClickable ? `Open ${project.name} project details` : undefined}
+      >
+        {showImage && project.imageUrl && (
+          <div className="relative w-full h-52 overflow-hidden bg-zinc-100 dark:bg-zinc-900">
+            <Image
+              src={project.imageUrl}
+              alt={`${project.name} preview`}
+              fill
+              className="object-cover object-top"
+              sizes="(max-width: 640px) 100vw, 50vw"
+            />
+          </div>
+        )}
 
-      {/* Placeholder when showImage=true but no imageUrl */}
-      {showImage && !project.imageUrl && (
-        <div className="w-full h-52 bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
-          <span
-            className="text-xs text-zinc-400 dark:text-zinc-600"
-            style={{ fontFamily: 'var(--font-jetbrains-mono), monospace' }}
-          >
-            No preview
-          </span>
-        </div>
-      )}
+        {showImage && !project.imageUrl && (
+          <div className="w-full h-52 bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
+            <span
+              className="text-xs text-zinc-400 dark:text-zinc-600"
+              style={{ fontFamily: 'var(--font-jetbrains-mono), monospace' }}
+            >
+              No preview
+            </span>
+          </div>
+        )}
 
-      {/* Card body */}
-      <div className="flex flex-col gap-4 p-5 flex-1">
-        {/* Top row: type badge + links */}
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className="text-[10px] font-semibold uppercase tracking-widest px-2.5 py-1 rounded-full bg-accent-portfolio/15 text-accent-portfolio border border-accent-portfolio/30"
-            style={{ fontFamily: 'var(--font-jetbrains-mono), monospace' }}
+        <div className="flex flex-col gap-4 p-5 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <span
+              className="text-[10px] font-semibold uppercase tracking-widest px-2.5 py-1 rounded-full bg-accent-portfolio/15 text-accent-portfolio border border-accent-portfolio/30"
+              style={{ fontFamily: 'var(--font-jetbrains-mono), monospace' }}
+            >
+              {project.type}
+            </span>
+            <div className="flex items-center gap-2">
+              {project.repoUrl && (
+                <a
+                  href={project.repoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${project.name} repository`}
+                  onClick={stopCardSelect}
+                  className="text-zinc-400 hover:text-accent-portfolio transition-colors dark:text-zinc-500"
+                >
+                  <GitHubIcon className="size-4" />
+                </a>
+              )}
+              {project.liveUrl && (
+                <a
+                  href={project.liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${project.name} live site`}
+                  onClick={stopCardSelect}
+                  className="text-zinc-400 hover:text-accent-portfolio transition-colors dark:text-zinc-500"
+                >
+                  <ExternalLink className="size-4" />
+                </a>
+              )}
+            </div>
+          </div>
+
+          <h3
+            className="text-xl font-bold text-foreground leading-tight"
+            style={{ fontFamily: "'Cabinet Grotesk', sans-serif" }}
           >
-            {project.type}
-          </span>
-          <div className="flex items-center gap-2">
-            {project.repoUrl && (
-              <a
-                href={project.repoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`${project.name} repository`}
-                className="text-zinc-400 hover:text-accent-portfolio transition-colors dark:text-zinc-500"
+            {project.name}
+          </h3>
+
+          <p
+            className="text-sm text-muted-foreground leading-relaxed flex-1"
+            style={{ fontFamily: 'var(--font-poppins), sans-serif' }}
+          >
+            {t(project.descriptionKey)}
+          </p>
+
+          <div className="flex flex-wrap gap-1.5">
+            {project.techStack.map((tech) => (
+              <Badge
+                key={tech}
+                variant="outline"
+                className="text-[11px] px-2 py-0.5 border-zinc-200 text-zinc-500 bg-transparent rounded-md dark:border-zinc-700 dark:text-zinc-400"
+                style={{ fontFamily: 'var(--font-poppins), sans-serif' }}
               >
-                <GitHubIcon className="size-4" />
-              </a>
-            )}
-            {project.liveUrl && (
-              <a
-                href={project.liveUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`${project.name} live site`}
-                className="text-zinc-400 hover:text-accent-portfolio transition-colors dark:text-zinc-500"
-              >
-                <ExternalLink className="size-4" />
-              </a>
-            )}
+                {tech}
+              </Badge>
+            ))}
           </div>
         </div>
-
-        {/* Title */}
-        <h3
-          className="text-xl font-bold text-foreground leading-tight"
-          style={{ fontFamily: "'Cabinet Grotesk', sans-serif" }}
-        >
-          {project.name}
-        </h3>
-
-        {/* Description */}
-        <p
-          className="text-sm text-muted-foreground leading-relaxed flex-1"
-          style={{ fontFamily: 'var(--font-poppins), sans-serif' }}
-        >
-          {t(project.descriptionKey)}
-        </p>
-
-        {/* Tech stack */}
-        <div className="flex flex-wrap gap-1.5">
-          {project.techStack.map((tech) => (
-            <Badge
-              key={tech}
-              variant="outline"
-              className="text-[11px] px-2 py-0.5 border-zinc-200 text-zinc-500 bg-transparent rounded-md dark:border-zinc-700 dark:text-zinc-400"
-              style={{ fontFamily: 'var(--font-poppins), sans-serif' }}
-            >
-              {tech}
-            </Badge>
-          ))}
-        </div>
       </div>
-    </div>
     </motion.div>
   )
 }
